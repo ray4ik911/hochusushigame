@@ -3,48 +3,54 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
-  <title>Philly Roll: Wasabi Rush</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>Philly Roll: Wasabi Rush 3D</title>
   <style>
     :root {
-      --bg:#080911;
-      --text:#fff7df;
-      --accent:#8cff45;
-      --danger:#ff3f29;
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-right: env(safe-area-inset-right, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --safe-left: env(safe-area-inset-left, 0px);
+      --text: #fff6dc;
+      --green: #93ff3c;
+      --red: #ff4633;
     }
+
     html, body {
       margin: 0;
       width: 100%;
       height: 100%;
+      background: #05060c;
+      color: var(--text);
       overflow: hidden;
       overscroll-behavior: none;
       touch-action: none;
-      background: #06070c;
-      color: var(--text);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       -webkit-user-select: none;
       user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
+
     body {
       position: fixed;
       inset: 0;
       display: grid;
       place-items: center;
-      background: radial-gradient(circle at 50% 20%, #1b2f43 0, #070811 58%, #030408 100%);
+      background:
+        radial-gradient(circle at 50% 20%, #1b3752 0, #060813 64%, #020309 100%);
     }
+
     #game {
       display: block;
       width: 100vw;
       height: 100dvh;
       max-width: 100vw;
       max-height: 100dvh;
-      background: #070812;
-      image-rendering: pixelated;
-      image-rendering: crisp-edges;
+      background: #060813;
+      touch-action: none;
     }
+
     .overlay {
       position: fixed;
       inset: 0;
@@ -55,106 +61,144 @@
         max(16px, var(--safe-left));
       display: grid;
       place-items: center;
+      z-index: 10;
       pointer-events: none;
-      z-index: 5;
     }
+
     .panel {
-      width: min(92vw, 520px);
-      padding: 18px;
-      border: 3px solid rgba(255,255,255,.35);
-      border-radius: 22px;
-      background: rgba(5,7,14,.82);
-      box-shadow: 0 18px 70px rgba(0,0,0,.55);
+      width: min(92vw, 560px);
+      padding: 20px;
+      border: 2px solid rgba(255,255,255,.32);
+      border-radius: 24px;
+      background: rgba(5,7,15,.84);
+      box-shadow: 0 20px 80px rgba(0,0,0,.62), inset 0 0 0 1px rgba(255,255,255,.08);
+      backdrop-filter: blur(10px);
       text-align: center;
       pointer-events: auto;
-      backdrop-filter: blur(8px);
     }
+
     .panel h1 {
-      margin: 0 0 8px;
-      font-size: clamp(27px, 8vw, 48px);
-      line-height: .95;
+      margin: 0 0 6px;
+      font-size: clamp(30px, 8vw, 58px);
+      line-height: .92;
       letter-spacing: -2px;
-      text-shadow: 4px 4px #000;
-      color: #fff0c7;
+      color: #fff0ba;
+      text-shadow: 4px 4px 0 #000;
     }
+
     .panel h2 {
-      margin: 0 0 14px;
-      font-size: clamp(15px, 4.4vw, 22px);
-      color: #8cff45;
-      text-shadow: 3px 3px #000;
+      margin: 0 0 12px;
+      font-size: clamp(16px, 4.7vw, 26px);
+      color: var(--green);
+      text-shadow: 3px 3px 0 #000;
     }
+
     .panel p {
       margin: 10px 0;
-      color: #ddd6bf;
-      font-size: clamp(13px, 3.7vw, 16px);
-      line-height: 1.35;
+      color: #ded6bd;
+      font-size: clamp(13px, 3.6vw, 16px);
+      line-height: 1.36;
     }
+
+    .panel .mini {
+      opacity: .82;
+      font-size: clamp(11px, 3.2vw, 13px);
+    }
+
     .panel button {
       width: 100%;
-      min-height: 56px;
+      min-height: 58px;
       margin-top: 14px;
       border: 0;
-      border-radius: 16px;
+      border-radius: 17px;
       color: white;
-      background: linear-gradient(#30b44b, #17682b);
-      box-shadow: inset 0 -8px rgba(0,0,0,.25), 0 8px 0 #092a12;
+      background: linear-gradient(#38c656, #17712c);
+      box-shadow: inset 0 -8px rgba(0,0,0,.28), 0 8px 0 #082713;
       font: 900 clamp(16px, 4.8vw, 22px) ui-monospace, monospace;
       touch-action: manipulation;
     }
+
     .panel button:active {
       transform: translateY(4px);
-      box-shadow: inset 0 -5px rgba(0,0,0,.25), 0 4px 0 #092a12;
+      box-shadow: inset 0 -5px rgba(0,0,0,.28), 0 4px 0 #082713;
     }
+
+    .hidden { display: none !important; }
+
     .hint {
       position: fixed;
       left: max(10px, var(--safe-left));
       right: max(10px, var(--safe-right));
       bottom: max(10px, var(--safe-bottom));
       z-index: 4;
-      pointer-events: none;
       text-align: center;
+      pointer-events: none;
+      color: rgba(255,255,255,.76);
       font-size: clamp(11px, 3.1vw, 14px);
-      color: rgba(255,255,255,.78);
-      text-shadow: 2px 2px #000;
+      text-shadow: 2px 2px 0 #000;
     }
+
     .tiltMeter {
       position: fixed;
       left: 50%;
-      bottom: max(35px, calc(var(--safe-bottom) + 35px));
+      bottom: max(38px, calc(var(--safe-bottom) + 38px));
       transform: translateX(-50%);
-      width: min(70vw, 320px);
+      width: min(72vw, 350px);
       height: 16px;
       border: 2px solid rgba(255,255,255,.35);
       border-radius: 999px;
-      background: rgba(0,0,0,.35);
+      background: rgba(0,0,0,.36);
       z-index: 4;
       pointer-events: none;
+      box-shadow: inset 0 0 12px rgba(0,0,0,.7);
     }
+
     .tiltMeter span {
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 28px;
-      height: 28px;
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
       transform: translate(-50%, -50%);
-      background: #8cff45;
-      box-shadow: 0 0 18px rgba(140,255,69,.8);
+      background: radial-gradient(circle at 35% 28%, #efffd8, #93ff3c 55%, #307b16);
+      box-shadow: 0 0 20px rgba(147,255,60,.8);
     }
-    .hidden { display: none !important; }
+
+    .debugControls {
+      position: fixed;
+      top: max(8px, var(--safe-top));
+      right: max(8px, var(--safe-right));
+      z-index: 6;
+      pointer-events: none;
+      color: rgba(255,255,255,.65);
+      font-size: 11px;
+      text-align: right;
+      text-shadow: 2px 2px #000;
+    }
+
+    @media (orientation: landscape) and (max-height: 520px) {
+      .hint { font-size: 11px; bottom: max(6px, var(--safe-bottom)); }
+      .tiltMeter { bottom: max(24px, calc(var(--safe-bottom) + 24px)); transform: translateX(-50%) scale(.82); }
+      .panel { width: min(84vw, 640px); padding: 14px; }
+      .panel p { margin: 6px 0; }
+      .panel button { min-height: 48px; }
+    }
   </style>
 </head>
+
 <body>
-  <canvas id="game" width="720" height="1280" aria-label="Philly Roll Wasabi Rush game"></canvas>
+  <canvas id="game" aria-label="Philly Roll Wasabi Rush 3D game"></canvas>
 
   <div class="overlay" id="startOverlay">
     <div class="panel">
       <h1>PHILLY ROLL</h1>
-      <h2>WASABI RUSH</h2>
-      <p>Вид сзади: ролл сам мчится вперёд. Наклоняй телефон влево/вправо, чтобы поворачивать.</p>
-      <p>Тап по экрану — бросок васаби. Враги появляются впереди.</p>
+      <h2>WASABI RUSH 3D</h2>
+      <p>Ролл сам несётся вперёд. Наклоняй iPhone/Android влево и вправо — персонаж будет резко смещаться.</p>
+      <p>Тап по экрану — бросок васаби. Можно удерживать палец, чтобы стрелять серией.</p>
+      <p>В какашках от крабов иногда остаются хилки — подбирай их, чтобы вернуть HP.</p>
       <button id="startBtn">START / ВКЛЮЧИТЬ НАКЛОН</button>
-      <p id="gyroNote">На iPhone лучше открыть через HTTPS, например GitHub Pages.</p>
+      <p class="mini" id="gyroNote">Для iPhone нужно открыть через HTTPS, например GitHub Pages, и разрешить доступ к движению.</p>
     </div>
   </div>
 
@@ -162,13 +206,14 @@
     <div class="panel">
       <h1>GAME OVER</h1>
       <h2 id="finalScore">SCORE 0</h2>
-      <p>Тапни кнопку, чтобы начать заново. Наклон будет заново откалиброван.</p>
+      <p>Наклон будет заново откалиброван под положение телефона.</p>
       <button id="restartBtn">ЕЩЁ РАЗ</button>
     </div>
   </div>
 
   <div class="tiltMeter" id="tiltMeter"><span id="tiltDot"></span></div>
-  <div class="hint">Наклон ←/→ — поворот · тап — бросить васаби · ролл бежит сам</div>
+  <div class="hint">Наклон ←/→ — движение · тап/удержание — васаби · стрелки/A-D и Space работают на ПК</div>
+  <div class="debugControls" id="debugInfo"></div>
 
 <script>
 (() => {
@@ -176,8 +221,6 @@
 
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  ctx.imageSmoothingEnabled = false;
-
   const startOverlay = document.getElementById('startOverlay');
   const gameOverOverlay = document.getElementById('gameOverOverlay');
   const finalScoreEl = document.getElementById('finalScore');
@@ -185,45 +228,66 @@
   const restartBtn = document.getElementById('restartBtn');
   const gyroNote = document.getElementById('gyroNote');
   const tiltDot = document.getElementById('tiltDot');
+  const debugInfo = document.getElementById('debugInfo');
 
   const rand = (a, b) => a + Math.random() * (b - a);
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
   const now = () => performance.now();
 
-  let W = canvas.width;
-  let H = canvas.height;
-  let DPR = 1;
+  let W = 720, H = 1280, DPR = 1, CSSW = 360, CSSH = 640;
+  const keys = Object.create(null);
 
   function resize() {
-    DPR = Math.min(2, window.devicePixelRatio || 1);
-    W = Math.floor(window.innerWidth * DPR);
-    H = Math.floor(window.innerHeight * DPR);
+    const vv = window.visualViewport;
+    CSSW = Math.max(260, Math.floor(vv ? vv.width : window.innerWidth));
+    CSSH = Math.max(360, Math.floor(vv ? vv.height : window.innerHeight));
+
+    let dpr = window.devicePixelRatio || 1;
+    const maxPixels = 2_900_000; // стабильнее на старых iPhone и Android.
+    const maxDpr = 2.35;
+    dpr = Math.min(maxDpr, dpr);
+    const pixels = CSSW * CSSH * dpr * dpr;
+    if (pixels > maxPixels) dpr = Math.sqrt(maxPixels / (CSSW * CSSH));
+    DPR = Math.max(1, dpr);
+
+    W = Math.floor(CSSW * DPR);
+    H = Math.floor(CSSH * DPR);
     canvas.width = W;
     canvas.height = H;
-    canvas.style.width = window.innerWidth + 'px';
-    canvas.style.height = window.innerHeight + 'px';
-    ctx.imageSmoothingEnabled = false;
+    canvas.style.width = CSSW + 'px';
+    canvas.style.height = CSSH + 'px';
+    ctx.imageSmoothingEnabled = true;
   }
+
   resize();
-  window.addEventListener('resize', resize);
-  window.addEventListener('orientationchange', () => setTimeout(resize, 250));
+  window.addEventListener('resize', resize, { passive: true });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', resize, { passive: true });
+    window.visualViewport.addEventListener('scroll', resize, { passive: true });
+  }
+  window.addEventListener('orientationchange', () => setTimeout(resize, 250), { passive: true });
 
   const levels = [
-    { name: 'SUSHI SPEEDWAY', road:'#243019', side:'#462014', sky1:'#17243c', sky2:'#35131a', enemyRate:1.1 },
-    { name: 'LAVA CAVE', road:'#302012', side:'#5a1912', sky1:'#130b13', sky2:'#5a1a10', enemyRate:1.32 },
-    { name: 'COLD STORAGE', road:'#15283b', side:'#10213b', sky1:'#0c1224', sky2:'#183b5c', enemyRate:1.55 },
-    { name: 'SANITARY RAID', road:'#2f2f34', side:'#202027', sky1:'#161a26', sky2:'#303a55', enemyRate:1.8 }
+    { name:'SUSHI SPEEDWAY', road:'#26371c', side:'#472618', sky1:'#15304b', sky2:'#1f1b35', fog:'#5aa6ff', enemyRate:.72, spawn:.0 },
+    { name:'LAVA CAVE', road:'#352314', side:'#612017', sky1:'#120a13', sky2:'#5b1b0f', fog:'#ff7a22', enemyRate:.80, spawn:.08 },
+    { name:'COLD STORAGE', road:'#162d42', side:'#0f223c', sky1:'#0b1223', sky2:'#194461', fog:'#9bd8ff', enemyRate:.88, spawn:.14 },
+    { name:'SANITARY RAID', road:'#34343a', side:'#23242d', sky1:'#151a28', sky2:'#333d59', fog:'#f7f1d4', enemyRate:.96, spawn:.20 },
+    { name:'FINAL INSPECTION', road:'#2b2e35', side:'#1a1b22', sky1:'#12141d', sky2:'#454b5e', fog:'#ffdf70', enemyRate:1.02, spawn:.25 }
   ];
 
   let game;
+  let fireHeld = false;
+
   let gyro = {
     enabled: false,
     supported: false,
-    neutralGamma: 0,
-    rawGamma: 0,
-    steer: 0,
-    readySamples: 0,
     calibrated: false,
+    neutral: 0,
+    raw: 0,
+    target: 0,
+    steer: 0,
+    samples: 0,
     lastEventT: 0
   };
 
@@ -232,134 +296,179 @@
       state: 'title',
       t: 0,
       score: 0,
-      high: Number(localStorage.getItem('wasabiRushHigh') || 0),
+      high: Number(localStorage.getItem('wasabiRush3DHigh') || 0),
       levelIndex: 0,
       levelTime: 0,
       speed: 1,
       shake: 0,
+      roadPhase: 0,
       message: '',
       messageT: 0,
+      spawnT: 1.15,
       player: {
         x: 0,
-        hp: 5,
-        maxHp: 5,
+        hp: 6,
+        maxHp: 6,
         throwCd: 0,
-        flash: 0
+        flash: 0,
+        lean: 0
       },
       enemies: [],
       shots: [],
       particles: [],
       poops: [],
-      spawnT: 0.8
+      heals: [],
+      scenery: []
     };
+    for (let i = 0; i < 26; i++) addScenery(rand(0.08, 1.0));
   }
-
-  resetGame();
 
   function startGame() {
+    resetGame();
     game.state = 'playing';
-    game.t = 0;
-    game.score = 0;
-    game.levelIndex = 0;
-    game.levelTime = 0;
-    game.speed = 1;
-    game.shake = 0;
-    game.message = levels[0].name;
-    game.messageT = 2.0;
-    game.player.x = 0;
-    game.player.hp = game.player.maxHp;
-    game.enemies.length = 0;
-    game.shots.length = 0;
-    game.particles.length = 0;
-    game.poops.length = 0;
-    game.spawnT = 0.8;
+    game.message = currentLevel().name;
+    game.messageT = 2.2;
     gyro.calibrated = false;
-    gyro.readySamples = 0;
+    gyro.samples = 0;
+    gyro.target = 0;
+    gyro.steer = 0;
     startOverlay.classList.add('hidden');
     gameOverOverlay.classList.add('hidden');
-  }
-
-  async function requestGyroAndStart() {
-    try {
-      // iPhone/Safari требует разрешение по нажатию кнопки.
-      if (typeof DeviceOrientationEvent !== 'undefined' &&
-          typeof DeviceOrientationEvent.requestPermission === 'function') {
-        const res = await DeviceOrientationEvent.requestPermission();
-        if (res !== 'granted') {
-          gyroNote.textContent = 'Наклон не разрешён. Разреши доступ к движению в браузере и попробуй снова.';
-          startGame(); // игра всё равно запустится: можно тестировать мышью/клавиатурой
-          return;
-        }
-      }
-      gyro.enabled = true;
-      gyro.supported = true;
-      window.addEventListener('deviceorientation', onOrientation, true);
-      startGame();
-    } catch (err) {
-      gyroNote.textContent = 'Не удалось включить наклон. Игра запустится с клавиатурой: стрелки/A-D.';
-      startGame();
-    }
-  }
-
-  function onOrientation(e) {
-    const g = Number(e.gamma);
-    if (!Number.isFinite(g)) return;
-    gyro.rawGamma = g;
-    gyro.lastEventT = now();
-    if (!gyro.calibrated) {
-      gyro.readySamples++;
-      // Считаем текущий угол нейтральным, чтобы можно было держать телефон как удобно.
-      gyro.neutralGamma = gyro.neutralGamma * 0.75 + g * 0.25;
-      if (gyro.readySamples > 8) gyro.calibrated = true;
-    }
-    const diff = g - gyro.neutralGamma;
-    const deadZone = 2.5;
-    const sign = diff < 0 ? -1 : 1;
-    const mag = Math.max(0, Math.abs(diff) - deadZone);
-    gyro.steer = clamp(sign * mag / 18, -1, 1);
   }
 
   function currentLevel() {
     return levels[game.levelIndex % levels.length];
   }
 
-  function addParticle(x, y, color, n=8, spread=1) {
-    for (let i=0; i<n; i++) {
+  function getOrientationAngle() {
+    const so = screen.orientation;
+    if (so && Number.isFinite(so.angle)) return so.angle;
+    if (Number.isFinite(window.orientation)) return window.orientation;
+    return 0;
+  }
+
+  function lateralTiltFromEvent(e) {
+    const angle = getOrientationAngle();
+    const gamma = Number(e.gamma);
+    const beta = Number(e.beta);
+
+    // В портретной ориентации lateral = gamma. В landscape оси меняются местами.
+    if (Math.abs(angle) === 90 && Number.isFinite(beta)) {
+      return angle > 0 ? beta : -beta;
+    }
+    if (Math.abs(angle) === 180 && Number.isFinite(gamma)) {
+      return -gamma;
+    }
+    return Number.isFinite(gamma) ? gamma : 0;
+  }
+
+  async function requestGyroAndStart() {
+    try {
+      if (typeof DeviceOrientationEvent !== 'undefined' &&
+          typeof DeviceOrientationEvent.requestPermission === 'function') {
+        const res = await DeviceOrientationEvent.requestPermission();
+        if (res !== 'granted') {
+          gyroNote.textContent = 'Наклон не разрешён. Можно играть на ПК стрелками/A-D и Space.';
+          startGame();
+          return;
+        }
+      }
+      gyro.enabled = true;
+      gyro.supported = true;
+      window.removeEventListener('deviceorientation', onOrientation, true);
+      window.addEventListener('deviceorientation', onOrientation, true);
+      startGame();
+    } catch (err) {
+      gyroNote.textContent = 'Гироскоп не включился. На ПК: стрелки/A-D, Space.';
+      startGame();
+    }
+  }
+
+  function onOrientation(e) {
+    const lateral = lateralTiltFromEvent(e);
+    gyro.raw = lateral;
+    gyro.lastEventT = now();
+
+    if (!gyro.calibrated) {
+      gyro.samples++;
+      gyro.neutral = gyro.samples === 1 ? lateral : lerp(gyro.neutral, lateral, 0.24);
+      if (gyro.samples > 7) gyro.calibrated = true;
+    }
+
+    const diff = lateral - gyro.neutral;
+    const deadZone = 0.85;      // было больше: теперь поворот реагирует раньше.
+    const sensitivity = 7.4;    // было около 18: теперь намного чувствительнее.
+    const mag = Math.max(0, Math.abs(diff) - deadZone);
+    gyro.target = clamp(Math.sign(diff) * mag / sensitivity, -1, 1);
+  }
+
+  function addScenery(z = 1) {
+    game.scenery.push({
+      z,
+      side: Math.random() < .5 ? -1 : 1,
+      x: rand(1.05, 1.55),
+      type: Math.random() < .42 ? 'lantern' : (Math.random() < .62 ? 'box' : 'sign'),
+      wobble: rand(0, 10)
+    });
+  }
+
+  function project(x, z, y3 = 0) {
+    // z: 0 рядом с игроком, 1 далеко. y3 — высота над дорогой в условных метрах.
+    const portrait = H >= W;
+    const horizon = portrait ? H * 0.255 : H * 0.22;
+    const t = 1 - z;
+    const p = Math.pow(t, 1.38);
+    const roadHalf = (portrait ? W * 0.07 : W * 0.09) + p * (portrait ? W * 0.49 : W * 0.42);
+    const y = horizon + p * (H * 0.68) - y3 * (140 * DPR) * (0.18 + p);
+    const screenX = W / 2 + x * roadHalf;
+    const scale = 0.16 + p * (portrait ? 1.75 : 1.25);
+    return { x: screenX, y, scale, roadHalf, p, horizon };
+  }
+
+  function addParticle(x, y, color, n = 8, spread = 1, gravity = 360) {
+    for (let i = 0; i < n; i++) {
       game.particles.push({
         x, y,
-        vx: rand(-150, 150) * spread,
-        vy: rand(-220, 90) * spread,
-        life: rand(0.22, 0.75),
+        vx: rand(-170, 170) * spread * DPR,
+        vy: rand(-230, 90) * spread * DPR,
+        life: rand(0.24, 0.82),
         color,
-        size: rand(3, 8) * DPR
+        size: rand(3, 8) * DPR,
+        gravity: gravity * DPR
       });
     }
   }
 
-  function addPoop(x, z) {
-    game.poops.push({ x, z: clamp(z + 0.05, 0.05, 0.95), life: 2.0, seed: Math.random()*1000 });
-    const p = project(x, z);
-    addParticle(p.x, p.y, '#6b3a17', 14, 0.65);
+  function addPoopAndHeal(x, z) {
+    const pz = clamp(z + 0.035, 0.04, 0.92);
+    game.poops.push({ x, z: pz, life: 2.0, seed: Math.random() * 1000 });
+    game.heals.push({ x: clamp(x + rand(-0.055, .055), -0.94, .94), z: clamp(pz + .02, 0.06, 0.94), life: 6.5, bob: rand(0, 10) });
+    const pp = project(x, pz, .05);
+    addParticle(pp.x, pp.y, '#6b3818', 16, .62);
   }
 
   function spawnEnemy() {
     const level = currentLevel();
+    const progress = Math.floor(game.levelIndex);
     const roll = Math.random();
+
     let kind = 'crab';
-    if (game.levelIndex >= 1 && roll > 0.55) kind = 'inspector';
-    if (game.levelIndex >= 3 && roll > 0.78) kind = 'chief';
+    if (progress >= 1 && roll > 0.62) kind = 'inspector';
+    if (progress >= 3 && roll > 0.84) kind = 'chief';
 
     const hp = kind === 'crab' ? 2 : (kind === 'chief' ? 5 : 3);
-    const speed = kind === 'crab' ? rand(0.17, 0.24) : (kind === 'chief' ? rand(0.12, 0.16) : rand(0.14, 0.19));
+    const baseSpeed = kind === 'crab' ? rand(.085, .125) : kind === 'chief' ? rand(.075, .105) : rand(.080, .115);
+
     game.enemies.push({
       kind,
-      x: rand(-0.82, 0.82),
-      z: 0.98,
+      x: rand(-.82, .82),
+      z: .985,
       hp,
       maxHp: hp,
-      speed: speed * level.enemyRate,
+      speed: baseSpeed * level.enemyRate,
       wobble: rand(0, 10),
-      hitFlash: 0
+      hitFlash: 0,
+      yaw: rand(-0.18, 0.18)
     });
   }
 
@@ -367,113 +476,129 @@
     if (game.state !== 'playing') return;
     const p = game.player;
     if (p.throwCd > 0) return;
-    p.throwCd = 0.18;
+
+    p.throwCd = 0.105; // можно стрелять заметно чаще.
     game.shots.push({
       x: p.x,
-      y: H * 0.80,
-      vx: 0,
-      vy: -H * 1.25,
-      life: 1.25,
-      r: 13 * DPR
+      y: H * (H >= W ? .812 : .76),
+      vx: p.lean * W * .11,
+      vy: -H * 1.42,
+      life: 1.22,
+      r: 15 * DPR
     });
-    addParticle(W/2 + p.x * W * 0.30, H * 0.82, '#9cff42', 6, 0.35);
+
+    const sx = W / 2 + p.x * W * .30;
+    addParticle(sx, H * (H >= W ? .82 : .78), '#98ff40', 8, .35, 120);
   }
 
-  function hurtPlayer(amount=1) {
+  function hurtPlayer(amount = 1) {
     const p = game.player;
     if (p.flash > 0) return;
     p.hp -= amount;
-    p.flash = 0.8;
-    game.shake = 16 * DPR;
-    addParticle(W/2 + p.x * W*0.28, H*0.80, '#fff2df', 22, 0.8);
+    p.flash = .84;
+    game.shake = 14 * DPR;
+    const px = W / 2 + p.x * W * .30;
+    addParticle(px, H * .82, '#fff2df', 22, .75);
     if (p.hp <= 0) {
       p.hp = 0;
       game.state = 'gameover';
+      fireHeld = false;
       if (game.score > game.high) {
         game.high = game.score;
-        localStorage.setItem('wasabiRushHigh', String(game.high));
+        localStorage.setItem('wasabiRush3DHigh', String(game.high));
       }
       finalScoreEl.textContent = 'SCORE ' + Math.floor(game.score);
       gameOverOverlay.classList.remove('hidden');
     }
   }
 
-  function damageEnemy(e, amount=1) {
+  function damageEnemy(e, amount = 1) {
     e.hp -= amount;
-    e.hitFlash = 0.14;
-    const pp = project(e.x, e.z);
-    addParticle(pp.x, pp.y, '#9cff42', 16, 0.55);
-    game.score += 50;
+    e.hitFlash = .15;
+    const pp = project(e.x, e.z, .25);
+    addParticle(pp.x, pp.y, '#98ff40', 16, .52, 220);
+    game.score += 55;
+
     if (e.hp <= 0) {
-      game.score += e.kind === 'crab' ? 200 : (e.kind === 'chief' ? 650 : 380);
-      if (e.kind === 'crab') addPoop(e.x, e.z);
-      else addParticle(pp.x, pp.y, '#f6f0d0', 26, 0.85);
+      game.score += e.kind === 'crab' ? 210 : (e.kind === 'chief' ? 650 : 390);
       e.dead = true;
+
+      if (e.kind === 'crab') addPoopAndHeal(e.x, e.z);
+      else addParticle(pp.x, pp.y, '#f5efd5', 26, .85, 280);
     }
   }
 
-  function project(x, z) {
-    // z: 0 = рядом с игроком, 1 = далеко на горизонте.
-    const horizon = H * 0.23;
-    const t = 1 - z;
-    const perspective = Math.pow(t, 1.35);
-    const roadHalf = (W * 0.08) + perspective * (W * 0.48);
-    const y = horizon + perspective * (H * 0.70);
-    const screenX = W/2 + x * roadHalf;
-    const scale = 0.22 + perspective * 1.55;
-    return { x: screenX, y, scale, roadHalf, perspective };
+  function collectHeal(h) {
+    const p = game.player;
+    h.dead = true;
+    if (p.hp < p.maxHp) p.hp = Math.min(p.maxHp, p.hp + 1);
+    game.score += 120;
+    const pp = project(h.x, h.z, .15);
+    addParticle(pp.x, pp.y, '#ff7fb0', 18, .55, 160);
   }
 
   function update(dt) {
     if (game.state !== 'playing') return;
+
     const level = currentLevel();
     game.t += dt;
     game.levelTime += dt;
-    game.score += dt * 12 * (1 + game.levelIndex * 0.2);
-    game.speed = 1 + Math.min(1.2, game.t / 90) + game.levelIndex * 0.15;
-    game.shake = Math.max(0, game.shake - dt * 60 * DPR);
+    game.roadPhase += dt * game.speed;
+    game.score += dt * 9 * (1 + game.levelIndex * .11);
     game.messageT = Math.max(0, game.messageT - dt);
+    game.shake = Math.max(0, game.shake - dt * 62 * DPR);
 
-    if (game.levelTime > 32) {
+    // Сложность растёт медленнее: уровни длиннее, скорость врагов увеличивается мягче.
+    if (game.levelTime > 52) {
       game.levelIndex++;
       game.levelTime = 0;
       game.message = currentLevel().name;
-      game.messageT = 2.2;
-      game.spawnT = 1.0;
+      game.messageT = 2.5;
+      game.spawnT = Math.max(game.spawnT, 1.2);
     }
+
+    game.speed = 0.82 + Math.min(.62, game.t / 165) + game.levelIndex * .052;
 
     const p = game.player;
     p.throwCd = Math.max(0, p.throwCd - dt);
     p.flash = Math.max(0, p.flash - dt);
 
+    // Гироскоп + клавиатура. Наклон быстрее двигает героя и ощущается резче.
+    gyro.steer = lerp(gyro.steer, gyro.target, 0.42);
     let steer = gyro.steer;
-    // Клавиатура оставлена для теста на компьютере.
-    if (keys.ArrowLeft || keys.KeyA) steer -= 0.9;
-    if (keys.ArrowRight || keys.KeyD) steer += 0.9;
+    if (keys.ArrowLeft || keys.KeyA) steer -= 1;
+    if (keys.ArrowRight || keys.KeyD) steer += 1;
     steer = clamp(steer, -1, 1);
 
-    p.x += steer * dt * 1.28;
-    p.x = clamp(p.x, -0.92, 0.92);
+    p.lean = lerp(p.lean, steer, .22);
+    p.x += steer * dt * 2.28;   // было медленнее: теперь персонаж быстрее реагирует на наклон.
+    p.x = clamp(p.x, -.94, .94);
 
-    if (tiltDot) tiltDot.style.transform = `translate(calc(-50% + ${steer * 145}px), -50%)`;
+    if (tiltDot) {
+      const range = Math.min(CSSW * .32, 160);
+      tiltDot.style.transform = `translate(calc(-50% + ${steer * range}px), -50%)`;
+    }
 
+    if ((fireHeld || keys.Space) && p.throwCd <= 0) throwWasabi();
+
+    // Более спокойный спавн, чтобы игра не усложнялась слишком резко.
     game.spawnT -= dt;
     if (game.spawnT <= 0) {
       spawnEnemy();
-      const base = 1.25 - Math.min(0.55, game.t / 80) - game.levelIndex * 0.08;
-      game.spawnT = rand(base * 0.65, base * 1.25);
+      const timePressure = Math.min(.42, game.t / 220);
+      const base = 1.95 - timePressure - level.spawn;
+      game.spawnT = rand(Math.max(.85, base * .72), Math.max(1.15, base * 1.28));
     }
 
     for (const e of game.enemies) {
-      e.wobble += dt * 4;
+      e.wobble += dt * 3.2;
       e.hitFlash = Math.max(0, e.hitFlash - dt);
       e.z -= dt * e.speed * game.speed;
-      e.x += Math.sin(e.wobble) * dt * 0.045;
-      e.x = clamp(e.x, -0.96, 0.96);
+      e.x += Math.sin(e.wobble) * dt * .032;
+      e.x = clamp(e.x, -.98, .98);
 
-      // Если враг добежал до игрока по той же стороне — урон.
-      if (e.z < 0.03) {
-        if (Math.abs(e.x - p.x) < 0.30) hurtPlayer(e.kind === 'chief' ? 2 : 1);
+      if (e.z < .035) {
+        if (Math.abs(e.x - p.x) < .32) hurtPlayer(e.kind === 'chief' ? 2 : 1);
         e.dead = true;
       }
     }
@@ -485,12 +610,12 @@
 
       for (const e of game.enemies) {
         if (e.dead) continue;
-        const pp = project(e.x, e.z);
-        const enemyR = (e.kind === 'chief' ? 42 : e.kind === 'inspector' ? 34 : 30) * pp.scale * DPR;
-        const sx = W/2 + s.x * W * 0.30;
-        const dy = s.y - pp.y;
+        const pp = project(e.x, e.z, e.kind === 'crab' ? .2 : .42);
+        const r = (e.kind === 'chief' ? 46 : e.kind === 'inspector' ? 38 : 34) * pp.scale * DPR;
+        const sx = W / 2 + s.x * W * .30;
         const dx = sx - pp.x;
-        if (dx*dx + dy*dy < (enemyR + s.r) * (enemyR + s.r)) {
+        const dy = s.y - pp.y;
+        if (dx * dx + dy * dy < (r + s.r) * (r + s.r)) {
           damageEnemy(e, 1);
           s.life = 0;
           break;
@@ -498,326 +623,505 @@
       }
     }
 
+    for (const poop of game.poops) {
+      poop.life -= dt;
+      poop.z -= dt * .075 * game.speed;
+    }
+
+    for (const h of game.heals) {
+      h.life -= dt;
+      h.z -= dt * .085 * game.speed;
+      h.bob += dt * 6;
+      if (h.z < .16 && Math.abs(h.x - p.x) < .30) collectHeal(h);
+      if (h.z < .02) h.dead = true;
+    }
+
+    for (const sc of game.scenery) {
+      sc.z -= dt * .13 * game.speed;
+      sc.wobble += dt;
+      if (sc.z < -.05) {
+        sc.z = 1 + rand(0, .22);
+        sc.side = Math.random() < .5 ? -1 : 1;
+        sc.x = rand(1.05, 1.55);
+        sc.type = Math.random() < .42 ? 'lantern' : (Math.random() < .62 ? 'box' : 'sign');
+      }
+    }
+
     for (const q of game.particles) {
       q.life -= dt;
       q.x += q.vx * dt;
       q.y += q.vy * dt;
-      q.vy += 320 * DPR * dt;
-    }
-
-    for (const poop of game.poops) {
-      poop.life -= dt;
-      poop.z -= dt * 0.11 * game.speed;
+      q.vy += q.gravity * dt;
     }
 
     game.enemies = game.enemies.filter(e => !e.dead);
-    game.shots = game.shots.filter(s => s.life > 0 && s.y > -50 * DPR);
+    game.shots = game.shots.filter(s => s.life > 0 && s.y > -100 * DPR);
+    game.poops = game.poops.filter(p => p.life > 0 && p.z > .015);
+    game.heals = game.heals.filter(h => !h.dead && h.life > 0);
     game.particles = game.particles.filter(q => q.life > 0);
-    game.poops = game.poops.filter(p => p.life > 0 && p.z > 0.02);
   }
 
-  function fillRect(x, y, w, h, color) {
+  function fill(color) { ctx.fillStyle = color; }
+  function stroke(color, width = 1) { ctx.strokeStyle = color; ctx.lineWidth = width; }
+
+  function rect(x, y, w, h, color) {
     ctx.fillStyle = color;
     ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
   }
 
-  function drawText(text, x, y, size, color='#fff', align='left') {
+  function ellipse(x, y, rx, ry, color) {
+    ctx.beginPath();
+    ctx.ellipse(x, y, Math.max(1, rx), Math.max(1, ry), 0, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+
+  function poly(points, color) {
+    ctx.beginPath();
+    ctx.moveTo(points[0][0], points[0][1]);
+    for (let i = 1; i < points.length; i++) ctx.lineTo(points[i][0], points[i][1]);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+
+  function drawText(text, x, y, size, color = '#fff', align = 'left') {
     ctx.font = `900 ${Math.round(size)}px ui-monospace, Menlo, Consolas, monospace`;
     ctx.textAlign = align;
     ctx.textBaseline = 'top';
     ctx.fillStyle = '#000';
-    ctx.fillText(text, x + 3*DPR, y + 3*DPR);
+    ctx.fillText(text, x + 3 * DPR, y + 3 * DPR);
     ctx.fillStyle = color;
     ctx.fillText(text, x, y);
   }
 
+  function shade(hex, amt) {
+    const n = parseInt(hex.replace('#',''), 16);
+    let r = (n >> 16) + amt;
+    let g = ((n >> 8) & 255) + amt;
+    let b = (n & 255) + amt;
+    r = clamp(r, 0, 255) | 0; g = clamp(g, 0, 255) | 0; b = clamp(b, 0, 255) | 0;
+    return `rgb(${r},${g},${b})`;
+  }
+
+  function draw3DBox(x, y, w, h, d, color) {
+    const dx = d * .55, dy = -d * .38;
+    poly([[x-w/2,y-h/2],[x+w/2,y-h/2],[x+w/2,y+h/2],[x-w/2,y+h/2]], color);
+    poly([[x+w/2,y-h/2],[x+w/2+dx,y-h/2+dy],[x+w/2+dx,y+h/2+dy],[x+w/2,y+h/2]], shade(color, -34));
+    poly([[x-w/2,y-h/2],[x+w/2,y-h/2],[x+w/2+dx,y-h/2+dy],[x-w/2+dx,y-h/2+dy]], shade(color, 26));
+  }
+
   function drawBackground() {
     const level = currentLevel();
-    const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, level.sky1);
-    g.addColorStop(0.45, level.sky2);
-    g.addColorStop(1, '#080811');
-    ctx.fillStyle = g;
-    ctx.fillRect(0,0,W,H);
+    const horizon = project(0, 1).horizon;
 
-    const horizon = H * 0.23;
+    const sky = ctx.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0, level.sky1);
+    sky.addColorStop(.55, level.sky2);
+    sky.addColorStop(1, '#070811');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, H);
 
-    // Фоновые огни/стеллажи/лавовые колонны.
-    for (let i=0; i<18; i++) {
-      const x = ((i*97 + game.t*12) % (W + 120*DPR)) - 60*DPR;
-      const h = (40 + (i*31)%130) * DPR;
-      ctx.fillStyle = i % 2 ? 'rgba(255,120,35,.25)' : 'rgba(130,180,255,.18)';
-      ctx.fillRect(x, horizon - h, 16*DPR + (i%4)*6*DPR, h);
+    // 3D fog glow
+    const fog = ctx.createRadialGradient(W/2, horizon, W*.05, W/2, horizon, Math.max(W,H)*.65);
+    fog.addColorStop(0, level.fog + '99');
+    fog.addColorStop(.45, level.fog + '22');
+    fog.addColorStop(1, '#00000000');
+    ctx.fillStyle = fog;
+    ctx.fillRect(0, 0, W, H);
+
+    // Side terrain.
+    rect(0, horizon, W, H - horizon, level.side);
+
+    // Road trapezoid.
+    const topLeft = project(-1, .995);
+    const topRight = project(1, .995);
+    const bottomLeft = project(-1, 0);
+    const bottomRight = project(1, 0);
+
+    poly([[topLeft.x, topLeft.y], [topRight.x, topRight.y], [bottomRight.x, bottomRight.y], [bottomLeft.x, bottomLeft.y]], level.road);
+
+    // Road side rails with 3D thickness.
+    for (const sx of [-1, 1]) {
+      const a = project(sx, .995);
+      const b = project(sx, 0);
+      const c = project(sx * 1.08, 0);
+      const d = project(sx * 1.03, .995);
+      poly([[a.x,a.y],[b.x,b.y],[c.x,c.y],[d.x,d.y]], shade(level.road, -38));
     }
 
-    // Поля вокруг дороги.
-    fillRect(0, horizon, W, H-horizon, level.side);
-
-    // Дорога в перспективе.
-    ctx.beginPath();
-    ctx.moveTo(W/2 - W*0.08, horizon);
-    ctx.lineTo(W/2 + W*0.08, horizon);
-    ctx.lineTo(W*0.95, H);
-    ctx.lineTo(W*0.05, H);
-    ctx.closePath();
-    ctx.fillStyle = level.road;
-    ctx.fill();
-
-    // Разметка и линии перспективы.
-    for (let i=0; i<18; i++) {
-      const z = ((game.t * game.speed * 0.34 + i / 18) % 1);
+    // Perspective lane marks.
+    for (let i = 0; i < 22; i++) {
+      const z = (game.roadPhase * .125 + i / 22) % 1;
       const p1 = project(0, z);
-      const p2 = project(0, clamp(z - 0.035, 0, 1));
-      const w1 = 5*DPR + p1.scale * 10*DPR;
-      ctx.strokeStyle = 'rgba(255,245,180,.65)';
-      ctx.lineWidth = w1;
+      const p2 = project(0, clamp(z - .025, 0, 1));
+      stroke('rgba(255,255,190,.62)', Math.max(1, 5 * p1.scale * DPR));
       ctx.beginPath();
-      ctx.moveTo(W/2, p1.y);
-      ctx.lineTo(W/2, p2.y);
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
       ctx.stroke();
     }
-    for (const side of [-1, 1]) {
-      ctx.strokeStyle = 'rgba(255,255,255,.18)';
-      ctx.lineWidth = 3*DPR;
+
+    // Floor panels grid.
+    for (let i = 0; i < 16; i++) {
+      const z = (game.roadPhase * .06 + i / 16) % 1;
+      const l = project(-1, z);
+      const r = project(1, z);
+      stroke('rgba(0,0,0,.18)', Math.max(1, DPR));
       ctx.beginPath();
-      ctx.moveTo(W/2 + side*W*0.08, horizon);
-      ctx.lineTo(W/2 + side*W*0.45, H);
+      ctx.moveTo(l.x, l.y);
+      ctx.lineTo(r.x, r.y);
       ctx.stroke();
+    }
+
+    for (const sc of [...game.scenery].sort((a,b)=>b.z-a.z)) {
+      drawScenery(sc);
+    }
+
+    // Vignette
+    const vg = ctx.createRadialGradient(W/2, H*.54, Math.min(W,H)*.2, W/2, H*.54, Math.max(W,H)*.7);
+    vg.addColorStop(0, 'rgba(0,0,0,0)');
+    vg.addColorStop(1, 'rgba(0,0,0,.38)');
+    ctx.fillStyle = vg;
+    ctx.fillRect(0,0,W,H);
+  }
+
+  function drawScenery(sc) {
+    const pp = project(sc.side * sc.x, sc.z, 0);
+    const s = pp.scale * DPR;
+    if (pp.y < -80 || pp.y > H + 140) return;
+
+    if (sc.type === 'lantern') {
+      draw3DBox(pp.x, pp.y - 62*s, 22*s, 96*s, 22*s, '#3d2815');
+      ellipse(pp.x, pp.y - 115*s, 28*s, 18*s, '#ffcc48');
+      ellipse(pp.x, pp.y - 115*s, 16*s, 10*s, '#fff4a8');
+    } else if (sc.type === 'box') {
+      draw3DBox(pp.x, pp.y - 20*s, 64*s, 44*s, 34*s, '#8a4c23');
+      rect(pp.x - 28*s, pp.y - 22*s, 56*s, 5*s, '#d29b50');
+    } else {
+      draw3DBox(pp.x, pp.y - 54*s, 84*s, 54*s, 18*s, '#2d405b');
+      drawText('SUSHI', pp.x, pp.y - 70*s, 12*s, '#fff0b3', 'center');
     }
   }
 
   function drawWasabiShot(s) {
-    const x = W/2 + s.x * W * 0.30;
+    const x = W / 2 + s.x * W * .30;
     const y = s.y;
-    fillRect(x - 14*DPR, y - 9*DPR, 28*DPR, 18*DPR, '#4ea821');
-    fillRect(x - 10*DPR, y - 14*DPR, 20*DPR, 12*DPR, '#91ff46');
-    fillRect(x + 3*DPR, y - 10*DPR, 8*DPR, 5*DPR, '#d8ff7b');
+    const r = s.r;
+    ellipse(x + r*.18, y + r*.25, r*.95, r*.42, 'rgba(0,0,0,.28)');
+    ellipse(x, y, r, r*.82, '#56b82a');
+    ellipse(x - r*.18, y - r*.20, r*.52, r*.35, '#b6ff5c');
+    ellipse(x + r*.28, y + r*.12, r*.18, r*.12, '#2f7d16');
   }
 
   function drawPoop(poop) {
-    const pp = project(poop.x, poop.z);
+    const pp = project(poop.x, poop.z, .02);
     const s = pp.scale * DPR;
     ctx.save();
-    ctx.globalAlpha = clamp(poop.life / 0.35, 0, 1);
-    fillRect(pp.x - 18*s, pp.y + 12*s, 36*s, 7*s, 'rgba(0,0,0,.35)');
-    fillRect(pp.x - 14*s, pp.y + 2*s, 28*s, 14*s, '#3b1f0f');
-    fillRect(pp.x - 9*s, pp.y - 7*s, 18*s, 12*s, '#613215');
-    fillRect(pp.x - 4*s, pp.y - 15*s, 8*s, 10*s, '#8a4c20');
-    fillRect(pp.x - 22*s + Math.sin(game.t*8+poop.seed)*4*s, pp.y - 24*s, 5*s, 5*s, '#8cff45');
-    fillRect(pp.x + 17*s - Math.sin(game.t*7+poop.seed)*4*s, pp.y - 34*s, 5*s, 5*s, '#8cff45');
+    ctx.globalAlpha = clamp(poop.life / .35, 0, 1);
+    ellipse(pp.x, pp.y + 15*s, 28*s, 8*s, 'rgba(0,0,0,.36)');
+    ellipse(pp.x, pp.y + 6*s, 24*s, 13*s, '#3c210f');
+    ellipse(pp.x, pp.y - 4*s, 17*s, 11*s, '#633415');
+    ellipse(pp.x, pp.y - 14*s, 10*s, 8*s, '#8c4a1d');
+    ellipse(pp.x + 4*s, pp.y - 18*s, 4*s, 3*s, '#bd6c2d');
+    ellipse(pp.x - 24*s + Math.sin(game.t*8 + poop.seed)*4*s, pp.y - 28*s, 4*s, 4*s, '#96ff43');
+    ellipse(pp.x + 24*s - Math.sin(game.t*7 + poop.seed)*4*s, pp.y - 38*s, 4*s, 4*s, '#96ff43');
     ctx.restore();
   }
 
-  function drawCrab(e, pp) {
+  function drawHeal(h) {
+    const pp = project(h.x, h.z, .12 + Math.sin(h.bob)*.025);
     const s = pp.scale * DPR;
-    const x = pp.x;
-    const y = pp.y;
-    const flash = e.hitFlash > 0;
-    const red = flash ? '#ffd36b' : '#e3421d';
-    fillRect(x - 38*s, y + 22*s, 76*s, 10*s, 'rgba(0,0,0,.42)');
-    // legs
-    fillRect(x - 50*s, y + 2*s, 24*s, 7*s, '#7c1d10');
-    fillRect(x + 26*s, y + 2*s, 24*s, 7*s, '#7c1d10');
-    fillRect(x - 54*s, y + 14*s, 28*s, 7*s, '#7c1d10');
-    fillRect(x + 26*s, y + 14*s, 28*s, 7*s, '#7c1d10');
-    // claws
-    fillRect(x - 58*s, y - 18*s, 25*s, 22*s, red);
-    fillRect(x + 33*s, y - 18*s, 25*s, 22*s, red);
-    fillRect(x - 59*s, y - 28*s, 19*s, 9*s, '#ff8b20');
-    fillRect(x + 40*s, y - 28*s, 19*s, 9*s, '#ff8b20');
-    // body
-    fillRect(x - 31*s, y - 26*s, 62*s, 46*s, red);
-    fillRect(x - 23*s, y - 22*s, 46*s, 13*s, '#ff7622');
-    fillRect(x - 25*s, y + 10*s, 50*s, 8*s, '#7c1d10');
-    // eyes
-    fillRect(x - 16*s, y - 8*s, 11*s, 11*s, '#111');
-    fillRect(x + 5*s, y - 8*s, 11*s, 11*s, '#111');
-    fillRect(x - 13*s, y - 5*s, 3*s, 3*s, '#fff');
-    fillRect(x + 8*s, y - 5*s, 3*s, 3*s, '#fff');
+    ellipse(pp.x, pp.y + 16*s, 22*s, 7*s, 'rgba(0,0,0,.25)');
+    ellipse(pp.x, pp.y, 18*s, 14*s, '#ff84b6');
+    ellipse(pp.x - 6*s, pp.y - 3*s, 9*s, 8*s, '#ffbfd6');
+    ellipse(pp.x + 6*s, pp.y - 3*s, 9*s, 8*s, '#ffbfd6');
+    rect(pp.x - 4*s, pp.y - 11*s, 8*s, 22*s, '#fff');
+    rect(pp.x - 11*s, pp.y - 4*s, 22*s, 8*s, '#fff');
   }
 
-  function drawInspector(e, pp) {
+  function drawCrab(e) {
+    const pp = project(e.x, e.z, .13);
     const s = pp.scale * DPR;
-    const x = pp.x;
-    const y = pp.y;
+    const x = pp.x, y = pp.y;
+    const hit = e.hitFlash > 0;
+    const shell = hit ? '#ffd87a' : '#d94321';
+
+    ellipse(x, y + 36*s, 58*s, 14*s, 'rgba(0,0,0,.34)');
+    // legs
+    for (const side of [-1, 1]) {
+      for (let i=0; i<3; i++) {
+        const yy = y + (-8 + i*15)*s;
+        rect(x + side*(35 + i*8)*s, yy, side*34*s, 7*s, '#762016');
+      }
+    }
+    // claws as 3D ellipses
+    ellipse(x - 76*s, y - 20*s, 27*s, 21*s, shell);
+    ellipse(x + 76*s, y - 20*s, 27*s, 21*s, shell);
+    ellipse(x - 79*s, y - 37*s, 20*s, 10*s, '#ff8734');
+    ellipse(x + 79*s, y - 37*s, 20*s, 10*s, '#ff8734');
+
+    // 3D body shell
+    ellipse(x, y - 7*s, 54*s, 39*s, shell);
+    ellipse(x, y - 20*s, 42*s, 20*s, '#ff7c2c');
+    ellipse(x, y + 11*s, 43*s, 13*s, '#8b2115');
+
+    // eyes / brow
+    ellipse(x - 17*s, y - 13*s, 9*s, 11*s, '#111');
+    ellipse(x + 17*s, y - 13*s, 9*s, 11*s, '#111');
+    ellipse(x - 20*s, y - 16*s, 3*s, 3*s, '#fff');
+    ellipse(x + 14*s, y - 16*s, 3*s, 3*s, '#fff');
+    rect(x - 30*s, y - 30*s, 22*s, 6*s, '#43120d');
+    rect(x + 8*s, y - 30*s, 22*s, 6*s, '#43120d');
+
+    if (e.hp < e.maxHp) drawHPBar(x, y - 72*s, 62*s, e.hp / e.maxHp);
+  }
+
+  function drawInspector(e) {
+    const pp = project(e.x, e.z, .42);
+    const s = pp.scale * DPR;
+    const x = pp.x, y = pp.y;
     const chief = e.kind === 'chief';
-    const flash = e.hitFlash > 0;
-    fillRect(x - 28*s, y + 26*s, 56*s, 10*s, 'rgba(0,0,0,.42)');
-    // legs
-    fillRect(x - 16*s, y + 28*s, 10*s, 25*s, '#1a1b28');
-    fillRect(x + 6*s, y + 28*s, 10*s, 25*s, '#1a1b28');
-    fillRect(x - 21*s, y + 49*s, 20*s, 7*s, '#111');
-    fillRect(x + 3*s, y + 49*s, 20*s, 7*s, '#111');
-    // fufaika/jacket
-    fillRect(x - 30*s, y - 25*s, 60*s, 58*s, flash ? '#fff1a8' : (chief ? '#5a6780' : '#6e7b8f'));
-    fillRect(x - 22*s, y - 18*s, 44*s, 42*s, chief ? '#193a77' : '#275aa3');
-    // RPN shirt text blocks
-    fillRect(x - 17*s, y - 5*s, 8*s, 6*s, '#fff');
-    fillRect(x - 5*s, y - 5*s, 8*s, 6*s, '#fff');
-    fillRect(x + 7*s, y - 5*s, 8*s, 6*s, '#fff');
-    // arms with papers
-    fillRect(x - 43*s, y - 14*s, 18*s, 8*s, '#f0c08b');
-    fillRect(x + 25*s, y - 14*s, 18*s, 8*s, '#f0c08b');
-    fillRect(x + 37*s, y - 22*s, 22*s, 17*s, '#f7f0d5');
-    fillRect(x + 39*s, y - 18*s, 16*s, 3*s, '#25324b');
-    fillRect(x + 39*s, y - 12*s, 14*s, 3*s, '#25324b');
+    const hit = e.hitFlash > 0;
+
+    ellipse(x, y + 70*s, 48*s, 14*s, 'rgba(0,0,0,.34)');
+
+    // legs and shoes
+    draw3DBox(x - 16*s, y + 45*s, 14*s, 46*s, 10*s, '#1a1b26');
+    draw3DBox(x + 16*s, y + 45*s, 14*s, 46*s, 10*s, '#1a1b26');
+    ellipse(x - 20*s, y + 72*s, 18*s, 7*s, '#090a0d');
+    ellipse(x + 20*s, y + 72*s, 18*s, 7*s, '#090a0d');
+
+    // jacket/fufaika body
+    draw3DBox(x, y + 2*s, 72*s, 70*s, 28*s, hit ? '#fff0a1' : (chief ? '#5b697f' : '#6c7c90'));
+    draw3DBox(x, y + 9*s, 48*s, 50*s, 14*s, chief ? '#1d3d80' : '#2761ac');
+
+    // RPN pixel text
+    rect(x - 23*s, y - 1*s, 10*s, 7*s, '#fff');
+    rect(x - 5*s, y - 1*s, 10*s, 7*s, '#fff');
+    rect(x + 13*s, y - 1*s, 10*s, 7*s, '#fff');
+
+    // arms and act paper
+    draw3DBox(x - 53*s, y - 2*s, 26*s, 12*s, 8*s, '#efbf86');
+    draw3DBox(x + 53*s, y - 2*s, 26*s, 12*s, 8*s, '#efbf86');
+    draw3DBox(x + 75*s, y - 12*s, 28*s, 24*s, 4*s, '#f8f0d6');
+    rect(x + 65*s, y - 18*s, 20*s, 3*s, '#24314d');
+    rect(x + 65*s, y - 10*s, 17*s, 3*s, '#24314d');
+
     // head
-    fillRect(x - 18*s, y - 58*s, 36*s, 34*s, '#f0c08b');
-    fillRect(x - 21*s, y - 64*s, 42*s, 11*s, '#263040');
-    fillRect(x - 13*s, y - 45*s, 8*s, 7*s, '#111');
-    fillRect(x + 5*s, y - 45*s, 8*s, 7*s, '#111');
-    fillRect(x - 9*s, y - 31*s, 18*s, 4*s, '#5b1d18');
+    ellipse(x, y - 58*s, 30*s, 34*s, '#eebc87');
+    rect(x - 24*s, y - 86*s, 48*s, 16*s, '#293240');
+    ellipse(x - 12*s, y - 59*s, 5*s, 6*s, '#111');
+    ellipse(x + 12*s, y - 59*s, 5*s, 6*s, '#111');
+    rect(x - 12*s, y - 41*s, 24*s, 4*s, '#5b1d18');
+
     if (chief) {
-      fillRect(x - 25*s, y - 74*s, 50*s, 10*s, '#1b2440');
-      fillRect(x - 9*s, y - 80*s, 18*s, 8*s, '#ffd052');
+      rect(x - 31*s, y - 98*s, 62*s, 13*s, '#1b2440');
+      rect(x - 10*s, y - 107*s, 20*s, 10*s, '#ffd052');
     }
+
+    if (e.hp < e.maxHp) drawHPBar(x, y - 115*s, 70*s, e.hp / e.maxHp);
   }
 
-  function drawEnemy(e) {
-    const pp = project(e.x, e.z);
-    if (e.kind === 'crab') drawCrab(e, pp);
-    else drawInspector(e, pp);
-
-    if (e.hp < e.maxHp) {
-      const s = pp.scale * DPR;
-      fillRect(pp.x - 30*s, pp.y - 72*s, 60*s, 6*s, '#111');
-      fillRect(pp.x - 29*s, pp.y - 71*s, 58*s * (e.hp/e.maxHp), 4*s, '#9cff42');
-    }
+  function drawHPBar(x, y, w, ratio) {
+    rect(x - w/2, y, w, 7*DPR, '#111');
+    rect(x - w/2 + 1*DPR, y + 1*DPR, (w - 2*DPR) * clamp(ratio,0,1), 5*DPR, '#93ff3c');
   }
 
   function drawPlayer() {
     const p = game.player;
-    const x = W/2 + p.x * W * 0.30;
-    const y = H * 0.84;
-    const s = Math.min(W, H) / 780;
-    const blink = p.flash > 0 && Math.floor(game.t*18)%2 === 0;
-    if (blink) return;
+    if (p.flash > 0 && Math.floor(game.t * 18) % 2 === 0) return;
 
-    fillRect(x - 58*s, y + 52*s, 116*s, 15*s, 'rgba(0,0,0,.48)');
+    const portrait = H >= W;
+    const x = W / 2 + p.x * W * .30;
+    const y = H * (portrait ? .835 : .79);
+    const s = Math.min(W, H) / (portrait ? 700 : 760);
+    const lean = p.lean * 18 * s;
 
-    // feet
-    fillRect(x - 34*s, y + 34*s, 14*s, 34*s, '#d77b28');
-    fillRect(x + 20*s, y + 34*s, 14*s, 34*s, '#d77b28');
-    fillRect(x - 49*s, y + 62*s, 38*s, 13*s, '#fff2d6');
-    fillRect(x + 11*s, y + 62*s, 38*s, 13*s, '#fff2d6');
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(p.lean * .10);
 
-    // body from behind: nori outline and rice/fillings visible from top
-    fillRect(x - 48*s, y - 57*s, 96*s, 104*s, '#071008');
-    fillRect(x - 43*s, y - 52*s, 86*s, 94*s, '#14321b');
-    fillRect(x - 32*s, y - 43*s, 64*s, 75*s, '#fff5df');
-    fillRect(x - 25*s, y - 35*s, 50*s, 60*s, '#f0e8d6');
+    ellipse(0, 72*s, 78*s, 18*s, 'rgba(0,0,0,.42)');
 
-    // fillings
-    fillRect(x - 15*s, y - 27*s, 22*s, 19*s, '#ff8b3a');
-    fillRect(x - 9*s, y - 22*s, 23*s, 11*s, '#e9502e');
-    fillRect(x + 9*s, y - 27*s, 17*s, 26*s, '#9be255');
-    fillRect(x - 27*s, y - 15*s, 13*s, 32*s, '#fff0ca');
+    // legs/shoes
+    draw3DBox(-34*s, 38*s, 17*s, 46*s, 12*s, '#d77b28');
+    draw3DBox(34*s, 38*s, 17*s, 46*s, 12*s, '#d77b28');
+    ellipse(-42*s, 69*s, 28*s, 10*s, '#fff2d6');
+    ellipse(42*s, 69*s, 28*s, 10*s, '#fff2d6');
 
-    // throwing arms
-    const throwPose = game.player.throwCd > 0.08;
-    fillRect(x - 62*s, y - 4*s, 24*s, 10*s, '#d77b28');
-    fillRect(x + 38*s, y - (throwPose ? 36 : 4)*s, 24*s, 10*s, '#d77b28');
-    fillRect(x - 73*s, y - 8*s, 17*s, 18*s, '#fff2d6');
-    fillRect(x + 58*s, y - (throwPose ? 42 : 8)*s, 17*s, 18*s, '#fff2d6');
-    if (throwPose) fillRect(x + 64*s, y - 58*s, 18*s, 15*s, '#8cff45');
+    // roll cylinder body from behind
+    ellipse(0, -44*s, 62*s, 27*s, '#071008');
+    rect(-62*s, -44*s, 124*s, 86*s, '#071008');
+    ellipse(0, 42*s, 62*s, 27*s, '#071008');
 
-    // back shine
-    fillRect(x - 41*s, y - 49*s, 6*s, 86*s, '#2f7a43');
+    rect(-54*s, -39*s, 108*s, 78*s, '#12351a');
+    ellipse(0, -39*s, 54*s, 24*s, '#1f5c2d');
+    ellipse(0, 39*s, 54*s, 24*s, '#09200e');
+
+    ellipse(0, -43*s, 46*s, 20*s, '#fff4dc');
+    ellipse(0, -43*s, 34*s, 15*s, '#f2ead6');
+    ellipse(-13*s, -46*s, 13*s, 8*s, '#ff8b3a');
+    ellipse(6*s, -47*s, 15*s, 7*s, '#e9502e');
+    ellipse(20*s, -43*s, 10*s, 12*s, '#9be255');
+    ellipse(-28*s, -39*s, 8*s, 13*s, '#fff0ca');
+
+    // back shine on nori
+    rect(-52*s, -32*s, 8*s, 62*s, '#2e7d40');
+
+    // arms: right arm throws wasabi
+    const throwing = p.throwCd > .045;
+    draw3DBox(-77*s, -8*s, 35*s, 14*s, 9*s, '#d77b28');
+    ellipse(-100*s, -8*s, 13*s, 13*s, '#fff2d6');
+
+    const armY = throwing ? -62*s : -8*s;
+    draw3DBox(77*s, armY, 35*s, 14*s, 9*s, '#d77b28');
+    ellipse(100*s, armY, 13*s, 13*s, '#fff2d6');
+    if (throwing) {
+      ellipse(116*s, armY - 14*s, 14*s, 11*s, '#93ff3c');
+      ellipse(111*s, armY - 17*s, 7*s, 5*s, '#e3ff9a');
+    }
+
+    // tiny back face mark / determined brows on top edge
+    rect(-20*s + lean*.06, -68*s, 40*s, 5*s, '#071008');
+
+    ctx.restore();
   }
 
   function drawHUD() {
-    const pad = 14 * DPR;
-    fillRect(0, 0, W, 76*DPR, 'rgba(0,0,0,.72)');
-    drawText('HP', pad, 14*DPR, 22*DPR, '#ffcb35');
-    for (let i=0; i<game.player.maxHp; i++) {
-      fillRect(pad + (42+i*26)*DPR, 17*DPR, 19*DPR, 19*DPR, i < game.player.hp ? '#e93f2b' : '#421a1a');
-    }
-    drawText('SCORE ' + Math.floor(game.score), pad, 44*DPR, 20*DPR, '#fff');
-    drawText('HI ' + Math.floor(Math.max(game.high, game.score)), W-pad, 44*DPR, 20*DPR, '#8cff45', 'right');
-    drawText('LVL ' + (game.levelIndex + 1), W-pad, 14*DPR, 22*DPR, '#ffcb35', 'right');
-    if (game.messageT > 0) {
-      drawText(game.message, W/2, 92*DPR, 28*DPR, '#fff0b5', 'center');
+    const pad = 13 * DPR;
+    const barH = (H >= W ? 82 : 66) * DPR;
+    rect(0, 0, W, barH, 'rgba(0,0,0,.70)');
+
+    drawText('HP', pad, 12*DPR, 21*DPR, '#ffcd35');
+    for (let i = 0; i < game.player.maxHp; i++) {
+      const x = pad + (40 + i*25) * DPR;
+      rect(x, 15*DPR, 18*DPR, 18*DPR, i < game.player.hp ? '#e93f2b' : '#401818');
+      rect(x + 4*DPR, 18*DPR, 5*DPR, 5*DPR, i < game.player.hp ? '#ff8b7e' : '#401818');
     }
 
-    if (gyro.enabled && now() - gyro.lastEventT > 1600 && game.state === 'playing') {
-      drawText('НАКЛОН НЕ ЧИТАЕТСЯ', W/2, 130*DPR, 20*DPR, '#ff6757', 'center');
-    }
-  }
+    drawText('SCORE ' + Math.floor(game.score), pad, 45*DPR, 18*DPR, '#fff');
+    drawText('LVL ' + (game.levelIndex + 1), W - pad, 12*DPR, 21*DPR, '#ffcd35', 'right');
+    drawText('HI ' + Math.floor(Math.max(game.high, game.score)), W - pad, 45*DPR, 18*DPR, '#93ff3c', 'right');
 
-  function drawTitleDim() {
-    if (game.state === 'title') {
-      ctx.fillStyle = 'rgba(0,0,0,.35)';
-      ctx.fillRect(0,0,W,H);
+    if (game.messageT > 0) drawText(game.message, W/2, barH + 14*DPR, 27*DPR, '#fff0b5', 'center');
+
+    if (gyro.enabled && now() - gyro.lastEventT > 1700 && game.state === 'playing') {
+      drawText('НАКЛОН НЕ ЧИТАЕТСЯ', W/2, barH + 48*DPR, 18*DPR, '#ff6757', 'center');
+    }
+
+    if (CSSW > CSSH && CSSH < 530) {
+      drawText('ПОВЕРНИ ВЕРТИКАЛЬНО ДЛЯ ЛУЧШЕГО ОБЗОРА', W/2, H - 72*DPR, 15*DPR, '#fff0b5', 'center');
+    }
+
+    if (debugInfo) {
+      debugInfo.textContent = `${CSSW}×${CSSH} DPR ${DPR.toFixed(2)}`;
     }
   }
 
   function draw() {
     ctx.save();
     if (game.shake > 0) ctx.translate(rand(-game.shake, game.shake), rand(-game.shake, game.shake));
+
     drawBackground();
 
-    // Дальний объект рисуется первым.
-    const sorted = [...game.poops.map(p => ({ type:'poop', z:p.z, obj:p })), ...game.enemies.map(e => ({ type:'enemy', z:e.z, obj:e }))].sort((a,b) => b.z - a.z);
-    for (const it of sorted) {
-      if (it.type === 'poop') drawPoop(it.obj);
-      else drawEnemy(it.obj);
+    const world = [
+      ...game.poops.map(o => ({ z:o.z, type:'poop', obj:o })),
+      ...game.heals.map(o => ({ z:o.z, type:'heal', obj:o })),
+      ...game.enemies.map(o => ({ z:o.z, type:'enemy', obj:o }))
+    ].sort((a,b) => b.z - a.z);
+
+    for (const item of world) {
+      if (item.type === 'poop') drawPoop(item.obj);
+      else if (item.type === 'heal') drawHeal(item.obj);
+      else if (item.obj.kind === 'crab') drawCrab(item.obj);
+      else drawInspector(item.obj);
     }
 
     for (const s of game.shots) drawWasabiShot(s);
+
     for (const q of game.particles) {
       ctx.save();
-      ctx.globalAlpha = clamp(q.life / 0.22, 0, 1);
-      fillRect(q.x, q.y, q.size, q.size, q.color);
+      ctx.globalAlpha = clamp(q.life / .22, 0, 1);
+      rect(q.x, q.y, q.size, q.size, q.color);
       ctx.restore();
     }
+
     drawPlayer();
     ctx.restore();
 
     drawHUD();
-    drawTitleDim();
+
+    if (game.state === 'title') {
+      ctx.fillStyle = 'rgba(0,0,0,.24)';
+      ctx.fillRect(0,0,W,H);
+    }
   }
 
-  const keys = Object.create(null);
-  window.addEventListener('keydown', (e) => {
-    keys[e.code] = true;
-    if (e.code === 'Space') {
+  function bindInputs() {
+    window.addEventListener('keydown', (e) => {
+      keys[e.code] = true;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (game.state === 'playing') {
+          fireHeld = true;
+          throwWasabi();
+        }
+      }
+      if (e.code === 'Enter' && game.state !== 'playing') requestGyroAndStart();
+    }, { passive:false });
+
+    window.addEventListener('keyup', (e) => {
+      keys[e.code] = false;
+      if (e.code === 'Space') fireHeld = false;
+    });
+
+    canvas.addEventListener('pointerdown', (e) => {
       e.preventDefault();
-      if (game.state === 'playing') throwWasabi();
-    }
-    if (e.code === 'Enter' && game.state !== 'playing') requestGyroAndStart();
-  }, { passive:false });
-  window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+      if (game.state === 'playing') {
+        fireHeld = true;
+        throwWasabi();
+        try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+      }
+    }, { passive:false });
 
-  // Тап по игровому полю — бросок васаби. Мультитач не нужен.
-  canvas.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    if (game.state === 'playing') throwWasabi();
-  }, { passive:false });
+    const stopFire = (e) => {
+      e.preventDefault();
+      fireHeld = false;
+    };
+    canvas.addEventListener('pointerup', stopFire, { passive:false });
+    canvas.addEventListener('pointercancel', stopFire, { passive:false });
+    canvas.addEventListener('pointerleave', stopFire, { passive:false });
 
-  startBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    requestGyroAndStart();
-  });
+    startBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      requestGyroAndStart();
+    });
 
-  restartBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    resetGame();
-    requestGyroAndStart();
-  });
+    restartBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      resetGame();
+      requestGyroAndStart();
+    });
 
-  // Блокируем скролл, масштабирование и контекстное меню на мобильных.
-  document.addEventListener('touchmove', (e) => e.preventDefault(), { passive:false });
-  document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive:false });
-  document.addEventListener('contextmenu', (e) => e.preventDefault());
+    document.addEventListener('touchmove', (e) => e.preventDefault(), { passive:false });
+    document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive:false });
+    document.addEventListener('dblclick', (e) => e.preventDefault(), { passive:false });
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
+    document.addEventListener('visibilitychange', () => { if (document.hidden) fireHeld = false; });
+  }
 
   let last = now();
   function loop(t) {
-    const dt = Math.min(0.033, (t - last) / 1000 || 0);
+    const dt = Math.min(.033, (t - last) / 1000 || 0);
     last = t;
     update(dt);
     draw();
     requestAnimationFrame(loop);
   }
+
+  resetGame();
+  bindInputs();
   requestAnimationFrame(loop);
 })();
 </script>

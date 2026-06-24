@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+  <title>Philly Roll: Wasabi Rush</title>
+  <style>
+    :root {
+      --bg:#080911;
+      --text:#fff7df;
+      --accent:#8cff45;
+      --danger:#ff3f29;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+    }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
+      background: #06070c;
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    body {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at 50% 20%, #1b2f43 0, #070811 58%, #030408 100%);
+    }
+    #game {
+      display: block;
+      width: 100vw;
+      height: 100dvh;
+      max-width: 100vw;
+      max-height: 100dvh;
+      background: #070812;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    .overlay {
+      position: fixed;
+      inset: 0;
+      padding:
+        max(18px, var(--safe-top))
+        max(16px, var(--safe-right))
+        max(18px, var(--safe-bottom))
+        max(16px, var(--safe-left));
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      z-index: 5;
+    }
+    .panel {
+      width: min(92vw, 520px);
+      padding: 18px;
+      border: 3px solid rgba(255,255,255,.35);
+      border-radius: 22px;
+      background: rgba(5,7,14,.82);
+      box-shadow: 0 18px 70px rgba(0,0,0,.55);
+      text-align: center;
+      pointer-events: auto;
+      backdrop-filter: blur(8px);
+    }
+    .panel h1 {
+      margin: 0 0 8px;
+      font-size: clamp(27px, 8vw, 48px);
+      line-height: .95;
+      letter-spacing: -2px;
+      text-shadow: 4px 4px #000;
+      color: #fff0c7;
+    }
+    .panel h2 {
+      margin: 0 0 14px;
+      font-size: clamp(15px, 4.4vw, 22px);
+      color: #8cff45;
+      text-shadow: 3px 3px #000;
+    }
+    .panel p {
+      margin: 10px 0;
+      color: #ddd6bf;
+      font-size: clamp(13px, 3.7vw, 16px);
+      line-height: 1.35;
+    }
+    .panel button {
+      width: 100%;
+      min-height: 56px;
+      margin-top: 14px;
+      border: 0;
+      border-radius: 16px;
+      color: white;
+      background: linear-gradient(#30b44b, #17682b);
+      box-shadow: inset 0 -8px rgba(0,0,0,.25), 0 8px 0 #092a12;
+      font: 900 clamp(16px, 4.8vw, 22px) ui-monospace, monospace;
+      touch-action: manipulation;
+    }
+    .panel button:active {
+      transform: translateY(4px);
+      box-shadow: inset 0 -5px rgba(0,0,0,.25), 0 4px 0 #092a12;
+    }
+    .hint {
+      position: fixed;
+      left: max(10px, var(--safe-left));
+      right: max(10px, var(--safe-right));
+      bottom: max(10px, var(--safe-bottom));
+      z-index: 4;
+      pointer-events: none;
+      text-align: center;
+      font-size: clamp(11px, 3.1vw, 14px);
+      color: rgba(255,255,255,.78);
+      text-shadow: 2px 2px #000;
+    }
+    .tiltMeter {
+      position: fixed;
+      left: 50%;
+      bottom: max(35px, calc(var(--safe-bottom) + 35px));
+      transform: translateX(-50%);
+      width: min(70vw, 320px);
+      height: 16px;
+      border: 2px solid rgba(255,255,255,.35);
+      border-radius: 999px;
+      background: rgba(0,0,0,.35);
+      z-index: 4;
+      pointer-events: none;
+    }
+    .tiltMeter span {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      background: #8cff45;
+      box-shadow: 0 0 18px rgba(140,255,69,.8);
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <canvas id="game" width="720" height="1280" aria-label="Philly Roll Wasabi Rush game"></canvas>
+
+  <div class="overlay" id="startOverlay">
+    <div class="panel">
+      <h1>PHILLY ROLL</h1>
+      <h2>WASABI RUSH</h2>
+      <p>Вид сзади: ролл сам мчится вперёд. Наклоняй телефон влево/вправо, чтобы поворачивать.</p>
+      <p>Тап по экрану — бросок васаби. Враги появляются впереди.</p>
+      <button id="startBtn">START / ВКЛЮЧИТЬ НАКЛОН</button>
+      <p id="gyroNote">На iPhone лучше открыть через HTTPS, например GitHub Pages.</p>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="gameOverOverlay">
+    <div class="panel">
+      <h1>GAME OVER</h1>
+      <h2 id="finalScore">SCORE 0</h2>
+      <p>Тапни кнопку, чтобы начать заново. Наклон будет заново откалиброван.</p>
+      <button id="restartBtn">ЕЩЁ РАЗ</button>
+    </div>
+  </div>
+
+  <div class="tiltMeter" id="tiltMeter"><span id="tiltDot"></span></div>
+  <div class="hint">Наклон ←/→ — поворот · тап — бросить васаби · ролл бежит сам</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  ctx.imageSmoothingEnabled = false;
+
+  const startOverlay = document.getElementById('startOverlay');
+  const gameOverOverlay = document.getElementById('gameOverOverlay');
+  const finalScoreEl = document.getElementById('finalScore');
+  const startBtn = document.getElementById('startBtn');
+  const restartBtn = document.getElementById('restartBtn');
+  const gyroNote = document.getElementById('gyroNote');
+  const tiltDot = document.getElementById('tiltDot');
+
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const now = () => performance.now();
+
+  let W = canvas.width;
+  let H = canvas.height;
+  let DPR = 1;
+
+  function resize() {
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    W = Math.floor(window.innerWidth * DPR);
+    H = Math.floor(window.innerHeight * DPR);
+    canvas.width = W;
+    canvas.height = H;
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    ctx.imageSmoothingEnabled = false;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', () => setTimeout(resize, 250));
+
+  const levels = [
+    { name: 'SUSHI SPEEDWAY', road:'#243019', side:'#462014', sky1:'#17243c', sky2:'#35131a', enemyRate:1.1 },
+    { name: 'LAVA CAVE', road:'#302012', side:'#5a1912', sky1:'#130b13', sky2:'#5a1a10', enemyRate:1.32 },
+    { name: 'COLD STORAGE', road:'#15283b', side:'#10213b', sky1:'#0c1224', sky2:'#183b5c', enemyRate:1.55 },
+    { name: 'SANITARY RAID', road:'#2f2f34', side:'#202027', sky1:'#161a26', sky2:'#303a55', enemyRate:1.8 }
+  ];
+
+  let game;
+  let gyro = {
+    enabled: false,
+    supported: false,
+    neutralGamma: 0,
+    rawGamma: 0,
+    steer: 0,
+    readySamples: 0,
+    calibrated: false,
+    lastEventT: 0
+  };
+
+  function resetGame() {
+    game = {
+      state: 'title',
+      t: 0,
+      score: 0,
+      high: Number(localStorage.getItem('wasabiRushHigh') || 0),
+      levelIndex: 0,
+      levelTime: 0,
+      speed: 1,
+      shake: 0,
+      message: '',
+      messageT: 0,
+      player: {
+        x: 0,
+        hp: 5,
+        maxHp: 5,
+        throwCd: 0,
+        flash: 0
+      },
+      enemies: [],
+      shots: [],
+      particles: [],
+      poops: [],
+      spawnT: 0.8
+    };
+  }
+
+  resetGame();
+
+  function startGame() {
+    game.state = 'playing';
+    game.t = 0;
+    game.score = 0;
+    game.levelIndex = 0;
+    game.levelTime = 0;
+    game.speed = 1;
+    game.shake = 0;
+    game.message = levels[0].name;
+    game.messageT = 2.0;
+    game.player.x = 0;
+    game.player.hp = game.player.maxHp;
+    game.enemies.length = 0;
+    game.shots.length = 0;
+    game.particles.length = 0;
+    game.poops.length = 0;
+    game.spawnT = 0.8;
+    gyro.calibrated = false;
+    gyro.readySamples = 0;
+    startOverlay.classList.add('hidden');
+    gameOverOverlay.classList.add('hidden');
+  }
+
+  async function requestGyroAndStart() {
+    try {
+      // iPhone/Safari требует разрешение по нажатию кнопки.
+      if (typeof DeviceOrientationEvent !== 'undefined' &&
+          typeof DeviceOrientationEvent.requestPermission === 'function') {
+        const res = await DeviceOrientationEvent.requestPermission();
+        if (res !== 'granted') {
+          gyroNote.textContent = 'Наклон не разрешён. Разреши доступ к движению в браузере и попробуй снова.';
+          startGame(); // игра всё равно запустится: можно тестировать мышью/клавиатурой
+          return;
+        }
+      }
+      gyro.enabled = true;
+      gyro.supported = true;
+      window.addEventListener('deviceorientation', onOrientation, true);
+      startGame();
+    } catch (err) {
+      gyroNote.textContent = 'Не удалось включить наклон. Игра запустится с клавиатурой: стрелки/A-D.';
+      startGame();
+    }
+  }
+
+  function onOrientation(e) {
+    const g = Number(e.gamma);
+    if (!Number.isFinite(g)) return;
+    gyro.rawGamma = g;
+    gyro.lastEventT = now();
+    if (!gyro.calibrated) {
+      gyro.readySamples++;
+      // Считаем текущий угол нейтральным, чтобы можно было держать телефон как удобно.
+      gyro.neutralGamma = gyro.neutralGamma * 0.75 + g * 0.25;
+      if (gyro.readySamples > 8) gyro.calibrated = true;
+    }
+    const diff = g - gyro.neutralGamma;
+    const deadZone = 2.5;
+    const sign = diff < 0 ? -1 : 1;
+    const mag = Math.max(0, Math.abs(diff) - deadZone);
+    gyro.steer = clamp(sign * mag / 18, -1, 1);
+  }
+
+  function currentLevel() {
+    return levels[game.levelIndex % levels.length];
+  }
+
+  function addParticle(x, y, color, n=8, spread=1) {
+    for (let i=0; i<n; i++) {
+      game.particles.push({
+        x, y,
+        vx: rand(-150, 150) * spread,
+        vy: rand(-220, 90) * spread,
+        life: rand(0.22, 0.75),
+        color,
+        size: rand(3, 8) * DPR
+      });
+    }
+  }
+
+  function addPoop(x, z) {
+    game.poops.push({ x, z: clamp(z + 0.05, 0.05, 0.95), life: 2.0, seed: Math.random()*1000 });
+    const p = project(x, z);
+    addParticle(p.x, p.y, '#6b3a17', 14, 0.65);
+  }
+
+  function spawnEnemy() {
+    const level = currentLevel();
+    const roll = Math.random();
+    let kind = 'crab';
+    if (game.levelIndex >= 1 && roll > 0.55) kind = 'inspector';
+    if (game.levelIndex >= 3 && roll > 0.78) kind = 'chief';
+
+    const hp = kind === 'crab' ? 2 : (kind === 'chief' ? 5 : 3);
+    const speed = kind === 'crab' ? rand(0.17, 0.24) : (kind === 'chief' ? rand(0.12, 0.16) : rand(0.14, 0.19));
+    game.enemies.push({
+      kind,
+      x: rand(-0.82, 0.82),
+      z: 0.98,
+      hp,
+      maxHp: hp,
+      speed: speed * level.enemyRate,
+      wobble: rand(0, 10),
+      hitFlash: 0
+    });
+  }
+
+  function throwWasabi() {
+    if (game.state !== 'playing') return;
+    const p = game.player;
+    if (p.throwCd > 0) return;
+    p.throwCd = 0.18;
+    game.shots.push({
+      x: p.x,
+      y: H * 0.80,
+      vx: 0,
+      vy: -H * 1.25,
+      life: 1.25,
+      r: 13 * DPR
+    });
+    addParticle(W/2 + p.x * W * 0.30, H * 0.82, '#9cff42', 6, 0.35);
+  }
+
+  function hurtPlayer(amount=1) {
+    const p = game.player;
+    if (p.flash > 0) return;
+    p.hp -= amount;
+    p.flash = 0.8;
+    game.shake = 16 * DPR;
+    addParticle(W/2 + p.x * W*0.28, H*0.80, '#fff2df', 22, 0.8);
+    if (p.hp <= 0) {
+      p.hp = 0;
+      game.state = 'gameover';
+      if (game.score > game.high) {
+        game.high = game.score;
+        localStorage.setItem('wasabiRushHigh', String(game.high));
+      }
+      finalScoreEl.textContent = 'SCORE ' + Math.floor(game.score);
+      gameOverOverlay.classList.remove('hidden');
+    }
+  }
+
+  function damageEnemy(e, amount=1) {
+    e.hp -= amount;
+    e.hitFlash = 0.14;
+    const pp = project(e.x, e.z);
+    addParticle(pp.x, pp.y, '#9cff42', 16, 0.55);
+    game.score += 50;
+    if (e.hp <= 0) {
+      game.score += e.kind === 'crab' ? 200 : (e.kind === 'chief' ? 650 : 380);
+      if (e.kind === 'crab') addPoop(e.x, e.z);
+      else addParticle(pp.x, pp.y, '#f6f0d0', 26, 0.85);
+      e.dead = true;
+    }
+  }
+
+  function project(x, z) {
+    // z: 0 = рядом с игроком, 1 = далеко на горизонте.
+    const horizon = H * 0.23;
+    const t = 1 - z;
+    const perspective = Math.pow(t, 1.35);
+    const roadHalf = (W * 0.08) + perspective * (W * 0.48);
+    const y = horizon + perspective * (H * 0.70);
+    const screenX = W/2 + x * roadHalf;
+    const scale = 0.22 + perspective * 1.55;
+    return { x: screenX, y, scale, roadHalf, perspective };
+  }
+
+  function update(dt) {
+    if (game.state !== 'playing') return;
+    const level = currentLevel();
+    game.t += dt;
+    game.levelTime += dt;
+    game.score += dt * 12 * (1 + game.levelIndex * 0.2);
+    game.speed = 1 + Math.min(1.2, game.t / 90) + game.levelIndex * 0.15;
+    game.shake = Math.max(0, game.shake - dt * 60 * DPR);
+    game.messageT = Math.max(0, game.messageT - dt);
+
+    if (game.levelTime > 32) {
+      game.levelIndex++;
+      game.levelTime = 0;
+      game.message = currentLevel().name;
+      game.messageT = 2.2;
+      game.spawnT = 1.0;
+    }
+
+    const p = game.player;
+    p.throwCd = Math.max(0, p.throwCd - dt);
+    p.flash = Math.max(0, p.flash - dt);
+
+    let steer = gyro.steer;
+    // Клавиатура оставлена для теста на компьютере.
+    if (keys.ArrowLeft || keys.KeyA) steer -= 0.9;
+    if (keys.ArrowRight || keys.KeyD) steer += 0.9;
+    steer = clamp(steer, -1, 1);
+
+    p.x += steer * dt * 1.28;
+    p.x = clamp(p.x, -0.92, 0.92);
+
+    if (tiltDot) tiltDot.style.transform = `translate(calc(-50% + ${steer * 145}px), -50%)`;
+
+    game.spawnT -= dt;
+    if (game.spawnT <= 0) {
+      spawnEnemy();
+      const base = 1.25 - Math.min(0.55, game.t / 80) - game.levelIndex * 0.08;
+      game.spawnT = rand(base * 0.65, base * 1.25);
+    }
+
+    for (const e of game.enemies) {
+      e.wobble += dt * 4;
+      e.hitFlash = Math.max(0, e.hitFlash - dt);
+      e.z -= dt * e.speed * game.speed;
+      e.x += Math.sin(e.wobble) * dt * 0.045;
+      e.x = clamp(e.x, -0.96, 0.96);
+
+      // Если враг добежал до игрока по той же стороне — урон.
+      if (e.z < 0.03) {
+        if (Math.abs(e.x - p.x) < 0.30) hurtPlayer(e.kind === 'chief' ? 2 : 1);
+        e.dead = true;
+      }
+    }
+
+    for (const s of game.shots) {
+      s.life -= dt;
+      s.x += s.vx * dt;
+      s.y += s.vy * dt;
+
+      for (const e of game.enemies) {
+        if (e.dead) continue;
+        const pp = project(e.x, e.z);
+        const enemyR = (e.kind === 'chief' ? 42 : e.kind === 'inspector' ? 34 : 30) * pp.scale * DPR;
+        const sx = W/2 + s.x * W * 0.30;
+        const dy = s.y - pp.y;
+        const dx = sx - pp.x;
+        if (dx*dx + dy*dy < (enemyR + s.r) * (enemyR + s.r)) {
+          damageEnemy(e, 1);
+          s.life = 0;
+          break;
+        }
+      }
+    }
+
+    for (const q of game.particles) {
+      q.life -= dt;
+      q.x += q.vx * dt;
+      q.y += q.vy * dt;
+      q.vy += 320 * DPR * dt;
+    }
+
+    for (const poop of game.poops) {
+      poop.life -= dt;
+      poop.z -= dt * 0.11 * game.speed;
+    }
+
+    game.enemies = game.enemies.filter(e => !e.dead);
+    game.shots = game.shots.filter(s => s.life > 0 && s.y > -50 * DPR);
+    game.particles = game.particles.filter(q => q.life > 0);
+    game.poops = game.poops.filter(p => p.life > 0 && p.z > 0.02);
+  }
+
+  function fillRect(x, y, w, h, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+  }
+
+  function drawText(text, x, y, size, color='#fff', align='left') {
+    ctx.font = `900 ${Math.round(size)}px ui-monospace, Menlo, Consolas, monospace`;
+    ctx.textAlign = align;
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = '#000';
+    ctx.fillText(text, x + 3*DPR, y + 3*DPR);
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y);
+  }
+
+  function drawBackground() {
+    const level = currentLevel();
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, level.sky1);
+    g.addColorStop(0.45, level.sky2);
+    g.addColorStop(1, '#080811');
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,W,H);
+
+    const horizon = H * 0.23;
+
+    // Фоновые огни/стеллажи/лавовые колонны.
+    for (let i=0; i<18; i++) {
+      const x = ((i*97 + game.t*12) % (W + 120*DPR)) - 60*DPR;
+      const h = (40 + (i*31)%130) * DPR;
+      ctx.fillStyle = i % 2 ? 'rgba(255,120,35,.25)' : 'rgba(130,180,255,.18)';
+      ctx.fillRect(x, horizon - h, 16*DPR + (i%4)*6*DPR, h);
+    }
+
+    // Поля вокруг дороги.
+    fillRect(0, horizon, W, H-horizon, level.side);
+
+    // Дорога в перспективе.
+    ctx.beginPath();
+    ctx.moveTo(W/2 - W*0.08, horizon);
+    ctx.lineTo(W/2 + W*0.08, horizon);
+    ctx.lineTo(W*0.95, H);
+    ctx.lineTo(W*0.05, H);
+    ctx.closePath();
+    ctx.fillStyle = level.road;
+    ctx.fill();
+
+    // Разметка и линии перспективы.
+    for (let i=0; i<18; i++) {
+      const z = ((game.t * game.speed * 0.34 + i / 18) % 1);
+      const p1 = project(0, z);
+      const p2 = project(0, clamp(z - 0.035, 0, 1));
+      const w1 = 5*DPR + p1.scale * 10*DPR;
+      ctx.strokeStyle = 'rgba(255,245,180,.65)';
+      ctx.lineWidth = w1;
+      ctx.beginPath();
+      ctx.moveTo(W/2, p1.y);
+      ctx.lineTo(W/2, p2.y);
+      ctx.stroke();
+    }
+    for (const side of [-1, 1]) {
+      ctx.strokeStyle = 'rgba(255,255,255,.18)';
+      ctx.lineWidth = 3*DPR;
+      ctx.beginPath();
+      ctx.moveTo(W/2 + side*W*0.08, horizon);
+      ctx.lineTo(W/2 + side*W*0.45, H);
+      ctx.stroke();
+    }
+  }
+
+  function drawWasabiShot(s) {
+    const x = W/2 + s.x * W * 0.30;
+    const y = s.y;
+    fillRect(x - 14*DPR, y - 9*DPR, 28*DPR, 18*DPR, '#4ea821');
+    fillRect(x - 10*DPR, y - 14*DPR, 20*DPR, 12*DPR, '#91ff46');
+    fillRect(x + 3*DPR, y - 10*DPR, 8*DPR, 5*DPR, '#d8ff7b');
+  }
+
+  function drawPoop(poop) {
+    const pp = project(poop.x, poop.z);
+    const s = pp.scale * DPR;
+    ctx.save();
+    ctx.globalAlpha = clamp(poop.life / 0.35, 0, 1);
+    fillRect(pp.x - 18*s, pp.y + 12*s, 36*s, 7*s, 'rgba(0,0,0,.35)');
+    fillRect(pp.x - 14*s, pp.y + 2*s, 28*s, 14*s, '#3b1f0f');
+    fillRect(pp.x - 9*s, pp.y - 7*s, 18*s, 12*s, '#613215');
+    fillRect(pp.x - 4*s, pp.y - 15*s, 8*s, 10*s, '#8a4c20');
+    fillRect(pp.x - 22*s + Math.sin(game.t*8+poop.seed)*4*s, pp.y - 24*s, 5*s, 5*s, '#8cff45');
+    fillRect(pp.x + 17*s - Math.sin(game.t*7+poop.seed)*4*s, pp.y - 34*s, 5*s, 5*s, '#8cff45');
+    ctx.restore();
+  }
+
+  function drawCrab(e, pp) {
+    const s = pp.scale * DPR;
+    const x = pp.x;
+    const y = pp.y;
+    const flash = e.hitFlash > 0;
+    const red = flash ? '#ffd36b' : '#e3421d';
+    fillRect(x - 38*s, y + 22*s, 76*s, 10*s, 'rgba(0,0,0,.42)');
+    // legs
+    fillRect(x - 50*s, y + 2*s, 24*s, 7*s, '#7c1d10');
+    fillRect(x + 26*s, y + 2*s, 24*s, 7*s, '#7c1d10');
+    fillRect(x - 54*s, y + 14*s, 28*s, 7*s, '#7c1d10');
+    fillRect(x + 26*s, y + 14*s, 28*s, 7*s, '#7c1d10');
+    // claws
+    fillRect(x - 58*s, y - 18*s, 25*s, 22*s, red);
+    fillRect(x + 33*s, y - 18*s, 25*s, 22*s, red);
+    fillRect(x - 59*s, y - 28*s, 19*s, 9*s, '#ff8b20');
+    fillRect(x + 40*s, y - 28*s, 19*s, 9*s, '#ff8b20');
+    // body
+    fillRect(x - 31*s, y - 26*s, 62*s, 46*s, red);
+    fillRect(x - 23*s, y - 22*s, 46*s, 13*s, '#ff7622');
+    fillRect(x - 25*s, y + 10*s, 50*s, 8*s, '#7c1d10');
+    // eyes
+    fillRect(x - 16*s, y - 8*s, 11*s, 11*s, '#111');
+    fillRect(x + 5*s, y - 8*s, 11*s, 11*s, '#111');
+    fillRect(x - 13*s, y - 5*s, 3*s, 3*s, '#fff');
+    fillRect(x + 8*s, y - 5*s, 3*s, 3*s, '#fff');
+  }
+
+  function drawInspector(e, pp) {
+    const s = pp.scale * DPR;
+    const x = pp.x;
+    const y = pp.y;
+    const chief = e.kind === 'chief';
+    const flash = e.hitFlash > 0;
+    fillRect(x - 28*s, y + 26*s, 56*s, 10*s, 'rgba(0,0,0,.42)');
+    // legs
+    fillRect(x - 16*s, y + 28*s, 10*s, 25*s, '#1a1b28');
+    fillRect(x + 6*s, y + 28*s, 10*s, 25*s, '#1a1b28');
+    fillRect(x - 21*s, y + 49*s, 20*s, 7*s, '#111');
+    fillRect(x + 3*s, y + 49*s, 20*s, 7*s, '#111');
+    // fufaika/jacket
+    fillRect(x - 30*s, y - 25*s, 60*s, 58*s, flash ? '#fff1a8' : (chief ? '#5a6780' : '#6e7b8f'));
+    fillRect(x - 22*s, y - 18*s, 44*s, 42*s, chief ? '#193a77' : '#275aa3');
+    // RPN shirt text blocks
+    fillRect(x - 17*s, y - 5*s, 8*s, 6*s, '#fff');
+    fillRect(x - 5*s, y - 5*s, 8*s, 6*s, '#fff');
+    fillRect(x + 7*s, y - 5*s, 8*s, 6*s, '#fff');
+    // arms with papers
+    fillRect(x - 43*s, y - 14*s, 18*s, 8*s, '#f0c08b');
+    fillRect(x + 25*s, y - 14*s, 18*s, 8*s, '#f0c08b');
+    fillRect(x + 37*s, y - 22*s, 22*s, 17*s, '#f7f0d5');
+    fillRect(x + 39*s, y - 18*s, 16*s, 3*s, '#25324b');
+    fillRect(x + 39*s, y - 12*s, 14*s, 3*s, '#25324b');
+    // head
+    fillRect(x - 18*s, y - 58*s, 36*s, 34*s, '#f0c08b');
+    fillRect(x - 21*s, y - 64*s, 42*s, 11*s, '#263040');
+    fillRect(x - 13*s, y - 45*s, 8*s, 7*s, '#111');
+    fillRect(x + 5*s, y - 45*s, 8*s, 7*s, '#111');
+    fillRect(x - 9*s, y - 31*s, 18*s, 4*s, '#5b1d18');
+    if (chief) {
+      fillRect(x - 25*s, y - 74*s, 50*s, 10*s, '#1b2440');
+      fillRect(x - 9*s, y - 80*s, 18*s, 8*s, '#ffd052');
+    }
+  }
+
+  function drawEnemy(e) {
+    const pp = project(e.x, e.z);
+    if (e.kind === 'crab') drawCrab(e, pp);
+    else drawInspector(e, pp);
+
+    if (e.hp < e.maxHp) {
+      const s = pp.scale * DPR;
+      fillRect(pp.x - 30*s, pp.y - 72*s, 60*s, 6*s, '#111');
+      fillRect(pp.x - 29*s, pp.y - 71*s, 58*s * (e.hp/e.maxHp), 4*s, '#9cff42');
+    }
+  }
+
+  function drawPlayer() {
+    const p = game.player;
+    const x = W/2 + p.x * W * 0.30;
+    const y = H * 0.84;
+    const s = Math.min(W, H) / 780;
+    const blink = p.flash > 0 && Math.floor(game.t*18)%2 === 0;
+    if (blink) return;
+
+    fillRect(x - 58*s, y + 52*s, 116*s, 15*s, 'rgba(0,0,0,.48)');
+
+    // feet
+    fillRect(x - 34*s, y + 34*s, 14*s, 34*s, '#d77b28');
+    fillRect(x + 20*s, y + 34*s, 14*s, 34*s, '#d77b28');
+    fillRect(x - 49*s, y + 62*s, 38*s, 13*s, '#fff2d6');
+    fillRect(x + 11*s, y + 62*s, 38*s, 13*s, '#fff2d6');
+
+    // body from behind: nori outline and rice/fillings visible from top
+    fillRect(x - 48*s, y - 57*s, 96*s, 104*s, '#071008');
+    fillRect(x - 43*s, y - 52*s, 86*s, 94*s, '#14321b');
+    fillRect(x - 32*s, y - 43*s, 64*s, 75*s, '#fff5df');
+    fillRect(x - 25*s, y - 35*s, 50*s, 60*s, '#f0e8d6');
+
+    // fillings
+    fillRect(x - 15*s, y - 27*s, 22*s, 19*s, '#ff8b3a');
+    fillRect(x - 9*s, y - 22*s, 23*s, 11*s, '#e9502e');
+    fillRect(x + 9*s, y - 27*s, 17*s, 26*s, '#9be255');
+    fillRect(x - 27*s, y - 15*s, 13*s, 32*s, '#fff0ca');
+
+    // throwing arms
+    const throwPose = game.player.throwCd > 0.08;
+    fillRect(x - 62*s, y - 4*s, 24*s, 10*s, '#d77b28');
+    fillRect(x + 38*s, y - (throwPose ? 36 : 4)*s, 24*s, 10*s, '#d77b28');
+    fillRect(x - 73*s, y - 8*s, 17*s, 18*s, '#fff2d6');
+    fillRect(x + 58*s, y - (throwPose ? 42 : 8)*s, 17*s, 18*s, '#fff2d6');
+    if (throwPose) fillRect(x + 64*s, y - 58*s, 18*s, 15*s, '#8cff45');
+
+    // back shine
+    fillRect(x - 41*s, y - 49*s, 6*s, 86*s, '#2f7a43');
+  }
+
+  function drawHUD() {
+    const pad = 14 * DPR;
+    fillRect(0, 0, W, 76*DPR, 'rgba(0,0,0,.72)');
+    drawText('HP', pad, 14*DPR, 22*DPR, '#ffcb35');
+    for (let i=0; i<game.player.maxHp; i++) {
+      fillRect(pad + (42+i*26)*DPR, 17*DPR, 19*DPR, 19*DPR, i < game.player.hp ? '#e93f2b' : '#421a1a');
+    }
+    drawText('SCORE ' + Math.floor(game.score), pad, 44*DPR, 20*DPR, '#fff');
+    drawText('HI ' + Math.floor(Math.max(game.high, game.score)), W-pad, 44*DPR, 20*DPR, '#8cff45', 'right');
+    drawText('LVL ' + (game.levelIndex + 1), W-pad, 14*DPR, 22*DPR, '#ffcb35', 'right');
+    if (game.messageT > 0) {
+      drawText(game.message, W/2, 92*DPR, 28*DPR, '#fff0b5', 'center');
+    }
+
+    if (gyro.enabled && now() - gyro.lastEventT > 1600 && game.state === 'playing') {
+      drawText('НАКЛОН НЕ ЧИТАЕТСЯ', W/2, 130*DPR, 20*DPR, '#ff6757', 'center');
+    }
+  }
+
+  function drawTitleDim() {
+    if (game.state === 'title') {
+      ctx.fillStyle = 'rgba(0,0,0,.35)';
+      ctx.fillRect(0,0,W,H);
+    }
+  }
+
+  function draw() {
+    ctx.save();
+    if (game.shake > 0) ctx.translate(rand(-game.shake, game.shake), rand(-game.shake, game.shake));
+    drawBackground();
+
+    // Дальний объект рисуется первым.
+    const sorted = [...game.poops.map(p => ({ type:'poop', z:p.z, obj:p })), ...game.enemies.map(e => ({ type:'enemy', z:e.z, obj:e }))].sort((a,b) => b.z - a.z);
+    for (const it of sorted) {
+      if (it.type === 'poop') drawPoop(it.obj);
+      else drawEnemy(it.obj);
+    }
+
+    for (const s of game.shots) drawWasabiShot(s);
+    for (const q of game.particles) {
+      ctx.save();
+      ctx.globalAlpha = clamp(q.life / 0.22, 0, 1);
+      fillRect(q.x, q.y, q.size, q.size, q.color);
+      ctx.restore();
+    }
+    drawPlayer();
+    ctx.restore();
+
+    drawHUD();
+    drawTitleDim();
+  }
+
+  const keys = Object.create(null);
+  window.addEventListener('keydown', (e) => {
+    keys[e.code] = true;
+    if (e.code === 'Space') {
+      e.preventDefault();
+      if (game.state === 'playing') throwWasabi();
+    }
+    if (e.code === 'Enter' && game.state !== 'playing') requestGyroAndStart();
+  }, { passive:false });
+  window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+  // Тап по игровому полю — бросок васаби. Мультитач не нужен.
+  canvas.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    if (game.state === 'playing') throwWasabi();
+  }, { passive:false });
+
+  startBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    requestGyroAndStart();
+  });
+
+  restartBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    resetGame();
+    requestGyroAndStart();
+  });
+
+  // Блокируем скролл, масштабирование и контекстное меню на мобильных.
+  document.addEventListener('touchmove', (e) => e.preventDefault(), { passive:false });
+  document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive:false });
+  document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  let last = now();
+  function loop(t) {
+    const dt = Math.min(0.033, (t - last) / 1000 || 0);
+    last = t;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

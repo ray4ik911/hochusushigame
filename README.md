@@ -1,1 +1,3 @@
-# hochusushigame
+# Philly Roll: Wasabi Rush
+
+Вертикальная мобильная HTML5-игра: наклон влево/вправо для поворота, тап для броска васаби. Для iPhone публикуйте через HTTPS, например GitHub Pages.
